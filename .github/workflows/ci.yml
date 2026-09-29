@@ -1,0 +1,187 @@
+# =============================================================================
+#  SauceLabs Mobile Test Automation – GitHub Actions CI/CD Pipeline
+# =============================================================================
+#
+#  Workflow overview:
+#   1. Checkout repository
+#   2. Set up Java 21 (Temurin)
+#   3. Cache Maven dependencies
+#   4. Enable KVM acceleration for Android emulator
+#   5. Start Android Emulator (API 33 / x86_64)
+#   6. Install Node.js + Appium 2.x + UiAutomator2 driver
+#   7. Start Appium server in background
+#   8. Execute @smoke tests via Maven
+#   9. Upload HTML report as build artifact
+#
+name: Mobile Test Automation CI
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: "Cucumber tag filter (e.g. @smoke, @regression)"
+        required: false
+        default: "@smoke"
+
+env:
+  JAVA_VERSION: "21"
+  NODE_VERSION: "20"
+  API_LEVEL: 34
+  TARGET: google_apis
+  ARCH: x86_64
+  PROFILE: pixel_7
+  AVD_NAME: Pixel_7_API_34
+  APPIUM_VERSION: "2.11.4"
+  CUCUMBER_TAGS: ${{ github.event.inputs.tags || '@smoke' }}
+
+jobs:
+  smoke-test:
+    name: "Smoke Tests – Android API ${{ env.API_LEVEL }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      # ── 1. Checkout ─────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Java 21 ──────────────────────────────────────────────────────────
+      - name: Set up Java ${{ env.JAVA_VERSION }} (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
+          cache: maven
+
+      # ── 3. Maven dependency cache ────────────────────────────────────────────
+      - name: Cache Maven local repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # ── 4. KVM acceleration ──────────────────────────────────────────────────
+      - name: Enable KVM (hardware acceleration for emulator)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # ── 5. Android SDK ───────────────────────────────────────────────────────
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: Install Android SDK components
+        run: |
+          sdkmanager \
+            "platform-tools" \
+            "emulator" \
+            "system-images;android-${{ env.API_LEVEL }};${{ env.TARGET }};${{ env.ARCH }}" \
+            "platforms;android-${{ env.API_LEVEL }}" \
+            "build-tools;34.0.0"
+
+      # ── 6. Create & Start AVD ────────────────────────────────────────────────
+      - name: Create AVD
+        run: |
+          echo "no" | avdmanager create avd \
+            --force \
+            --name "${{ env.AVD_NAME }}" \
+            --package "system-images;android-${{ env.API_LEVEL }};${{ env.TARGET }};${{ env.ARCH }}" \
+            --device "${{ env.PROFILE }}"
+
+      - name: Start Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ env.API_LEVEL }}
+          target: ${{ env.TARGET }}
+          arch: ${{ env.ARCH }}
+          profile: ${{ env.PROFILE }}
+          avd-name: ${{ env.AVD_NAME }}
+          force-avd-creation: false
+          emulator-options: "-no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim"
+          disable-animations: true
+          pre-emulator-launch-script: |
+            echo "Emulator is starting..."
+
+      # ── 7. Node.js + Appium 2.x ─────────────────────────────────────────────
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Appium ${{ env.APPIUM_VERSION }}
+        run: npm install -g appium@${{ env.APPIUM_VERSION }}
+
+      - name: Install Appium UiAutomator2 driver
+        run: appium driver install uiautomator2
+
+      - name: Verify Appium installation
+        run: appium --version
+
+      - name: Start Appium server (background)
+        run: |
+          appium \
+            --address 127.0.0.1 \
+            --port 4723 \
+            --log target/logs/appium.log \
+            --log-timestamp \
+            --log-no-colors &
+          echo "Waiting for Appium server to be ready..."
+          sleep 10
+          curl -s http://127.0.0.1:4723/status | python3 -m json.tool
+
+      # ── 8. Wait for emulator to be fully ready ───────────────────────────────
+      - name: Wait for emulator boot
+        run: |
+          adb wait-for-device
+          while [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" != "1" ]; do
+            echo "Waiting for emulator to boot..."; sleep 5
+          done
+          echo "Emulator is ready."
+          adb devices
+
+      # ── 9. Run @smoke tests ──────────────────────────────────────────────────
+      - name: Run Smoke Tests
+        run: |
+          mvn test \
+            -Dcucumber.tags="${{ env.CUCUMBER_TAGS }}" \
+            -Dandroid.deviceName=emulator-5554 \
+            -Dandroid.platformVersion=14.0 \
+            -Dandroid.avdName=Pixel_7_API_34 \
+            --no-transfer-progress
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+
+      # ── 10. Upload Reports ───────────────────────────────────────────────────
+      - name: Upload Cucumber HTML Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cucumber-html-report-${{ github.run_number }}
+          path: target/cucumber-reports/
+          retention-days: 14
+
+      - name: Upload Appium Logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: appium-logs-${{ github.run_number }}
+          path: target/logs/
+          retention-days: 7
+
+      - name: Upload Framework Logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: framework-logs-${{ github.run_number }}
+          path: target/logs/framework.log
+          retention-days: 7
