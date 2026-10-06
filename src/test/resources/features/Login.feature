@@ -10,7 +10,7 @@ Feature: Login Screen Functionality
   # ─────────────────────────────────────────────────────────────
   # 1. Successful login
   # ─────────────────────────────────────────────────────────────
-  @smoke @login
+  @smoke @login @TC1
   Scenario: Successful login with valid credentials
     When  the user enters valid credentials
     And   the user taps the LOGIN button
