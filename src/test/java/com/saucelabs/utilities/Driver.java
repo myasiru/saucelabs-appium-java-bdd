@@ -5,7 +5,6 @@ import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.options.UiAutomator2Options;
 import io.appium.java_client.ios.IOSDriver;
 import io.appium.java_client.ios.options.XCUITestOptions;
-import org.openqa.selenium.remote.DesiredCapabilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,16 +16,10 @@ import java.time.Duration;
 /**
  * Thread-safe Singleton Driver Factory.
  *
- * <p>Uses {@link ThreadLocal} to maintain one {@link AppiumDriver} per thread,
+ * <p>
+ * Uses {@link ThreadLocal} to maintain one {@link AppiumDriver} per thread,
  * enabling safe parallel test execution. Supports Android (UiAutomator2) and
- * iOS (XCUITest) natively, and is extensible for cloud platforms (SauceLabs,
- * BrowserStack, LambdaTest).
- *
- * <p>Usage:
- * <pre>{@code
- *   AppiumDriver driver = Driver.get();   // initialises if absent
- *   Driver.quit();                        // tears down and removes ThreadLocal entry
- * }</pre>
+ * iOS (XCUITest) natively.
  */
 public final class Driver {
 
@@ -68,7 +61,8 @@ public final class Driver {
                 driver.quit();
                 LOG.info("[Thread-{}] Driver session closed successfully.", Thread.currentThread().getId());
             } catch (Exception e) {
-                LOG.error("[Thread-{}] Error while quitting driver: {}", Thread.currentThread().getId(), e.getMessage());
+                LOG.error("[Thread-{}] Error while quitting driver: {}", Thread.currentThread().getId(),
+                        e.getMessage());
             } finally {
                 DRIVER_THREAD_LOCAL.remove();
             }
@@ -92,8 +86,8 @@ public final class Driver {
 
         AppiumDriver driver = switch (platform) {
             case "android" -> createAndroidDriver(serverUrl);
-            case "ios"     -> createIosDriver(serverUrl);
-            default        -> throw new IllegalArgumentException("Unsupported platform: '" + platform +
+            case "ios" -> createIosDriver(serverUrl);
+            default -> throw new IllegalArgumentException("Unsupported platform: '" + platform +
                     "'. Supported values: android, ios");
         };
 
@@ -122,14 +116,12 @@ public final class Driver {
                         ConfigurationReader.getOrDefault("android.autoGrantPermissions", "true")));
 
         // ── Pixel 7 / Android 14 specific capabilities ────────────────────────
-        // AVD name: allows Appium to launch the emulator automatically if not running
         String avdName = ConfigurationReader.getOrDefault("android.avdName", "");
         if (!avdName.isBlank()) {
             options.setAvd(avdName);
             LOG.info("AVD name set to '{}'. Appium will auto-launch if emulator is not running.", avdName);
         }
 
-        // Auto-download matching ChromeDriver for Pixel 7's built-in Chrome (Android 14)
         boolean chromedriverAutodownload = Boolean.parseBoolean(
                 ConfigurationReader.getOrDefault("android.chromedriverAutodownload", "false"));
         if (chromedriverAutodownload) {
@@ -176,7 +168,7 @@ public final class Driver {
         if (file.isAbsolute() && file.exists()) {
             return file.getAbsolutePath();
         }
-        // Relative to project root
+
         File relative = new File(System.getProperty("user.dir"), configuredPath);
         if (!relative.exists()) {
             throw new RuntimeException("APK/IPA not found at: " + relative.getAbsolutePath() +
