@@ -33,6 +33,7 @@ public class LoginStepDefs {
     public void theUserIsOnTheLoginScreen() {
         LOG.info("Step: the user is on the Login screen");
         loginPage = new LoginPage();
+        loginPage.navigateToLoginScreen();
     }
 
     // =========================================================================
@@ -52,6 +53,15 @@ public class LoginStepDefs {
     public void theUserEntersUsernameAndPassword(String username, String password) {
         LOG.info("Step: entering username='{}', password='[REDACTED]'", username);
         loginPage.enterUsername(username)
+                 .enterPassword(password);
+    }
+
+    @When("the user enters a locked out username")
+    public void theUserEntersALockedOutUsername() {
+        String lockedUser = ConfigurationReader.getOrDefault("locked.username", "alice@example.com");
+        String password   = ConfigurationReader.get("valid.password");
+        LOG.info("Step: entering locked out username '{}'", lockedUser);
+        loginPage.enterUsername(lockedUser)
                  .enterPassword(password);
     }
 

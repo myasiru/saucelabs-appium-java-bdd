@@ -2,6 +2,7 @@ package com.saucelabs.pages;
 
 import com.saucelabs.utilities.GestureUtils;
 import com.saucelabs.utilities.WaitUtils;
+import io.appium.java_client.pagefactory.AndroidFindAll;
 import io.appium.java_client.pagefactory.AndroidFindBy;
 import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
@@ -23,15 +24,15 @@ public class ProductsPage extends BasePage {
     // Locators
     // =========================================================================
 
-    @AndroidFindBy(accessibility = "test-PRODUCTS")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/mTvTitle' or @resource-id='com.saucelabs.mydemoapp.android:id/productTV' or @content-desc='test-PRODUCTS']")
     private WebElement productsHeader;
 
     /** All product title text elements in the catalog list. */
-    @AndroidFindBy(accessibility = "test-Item title")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/titleTV' or @content-desc='test-Item title']")
     private List<WebElement> productTitles;
 
     /** All product price text elements in the catalog list. */
-    @AndroidFindBy(accessibility = "test-Price")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/priceTV' or @content-desc='test-Price']")
     private List<WebElement> productPrices;
 
     /** The sort / filter button (funnel icon) in the top-right. */

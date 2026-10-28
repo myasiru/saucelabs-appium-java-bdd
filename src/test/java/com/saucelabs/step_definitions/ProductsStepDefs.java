@@ -34,6 +34,7 @@ public class ProductsStepDefs {
     public void theUserIsLoggedInAndOnTheProductsScreen() {
         LOG.info("Step: logging in and navigating to Products screen.");
         LoginPage loginPage = new LoginPage();
+        loginPage.navigateToLoginScreen();
         productsPage = loginPage
                 .enterUsername(ConfigurationReader.get("valid.username"))
                 .enterPassword(ConfigurationReader.get("valid.password"))

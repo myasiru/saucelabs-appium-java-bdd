@@ -1,5 +1,6 @@
 package com.saucelabs.pages;
 
+import io.appium.java_client.pagefactory.AndroidFindAll;
 import io.appium.java_client.pagefactory.AndroidFindBy;
 import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
@@ -20,25 +21,31 @@ public class LoginPage extends BasePage {
     // Locators — AppiumBy / @AndroidFindBy
     // =========================================================================
 
-    @AndroidFindBy(accessibility = "test-Username")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/menuIV' or @content-desc='View menu' or @content-desc='test-Menu']")
+    private WebElement menuButton;
+
+    @AndroidFindBy(xpath = "//*[@text='Log In' or @content-desc='Login Menu Item' or @content-desc='test-LOG IN']")
+    private WebElement loginMenuItem;
+
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/nameET' or @content-desc='test-Username']")
     private WebElement usernameField;
 
-    @AndroidFindBy(accessibility = "test-Password")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/passwordET' or @content-desc='test-Password']")
     private WebElement passwordField;
 
-    @AndroidFindBy(accessibility = "test-LOGIN")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/loginBtn' or @content-desc='test-LOGIN']")
     private WebElement loginButton;
 
-    @AndroidFindBy(xpath = "//android.view.ViewGroup[@content-desc='test-Error message']/android.widget.TextView")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/passwordErrorTV' or @content-desc='test-Error message']")
     private WebElement errorMessage;
 
-    @AndroidFindBy(accessibility = "test-PRODUCTS")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/mTvTitle' or @resource-id='com.saucelabs.mydemoapp.android:id/productTV' or @content-desc='test-PRODUCTS']")
     private WebElement productsHeader;
 
-    @AndroidFindBy(uiAutomator = "new UiSelector().resourceIdMatches(\".*username-error\")")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/nameErrorTV']")
     private WebElement usernameErrorMessage;
 
-    @AndroidFindBy(uiAutomator = "new UiSelector().resourceIdMatches(\".*password-error\")")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/passwordErrorTV']")
     private WebElement passwordErrorMessage;
 
     // =========================================================================
@@ -48,6 +55,36 @@ public class LoginPage extends BasePage {
     public LoginPage() {
         super();
         LOG.debug("LoginPage constructed.");
+    }
+
+    /**
+     * Ensures driver is on the Login screen. If on Products/Catalog screen,
+     * opens side menu and taps 'Log In'.
+     */
+    public LoginPage navigateToLoginScreen() {
+        LOG.info("Checking if already on Login screen...");
+        if (isUsernameFieldDisplayed()) {
+            LOG.info("Already on Login screen.");
+            return this;
+        }
+
+        LOG.info("Navigating to Login screen via side menu...");
+        try {
+            click(menuButton);
+            click(loginMenuItem);
+            LOG.info("Successfully navigated to Login screen.");
+        } catch (Exception e) {
+            LOG.warn("Could not navigate to Login screen via menu: {}", e.getMessage());
+        }
+        return this;
+    }
+
+    private boolean isUsernameFieldDisplayed() {
+        try {
+            return usernameField != null && usernameField.isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // =========================================================================
