@@ -1,27 +1,87 @@
-﻿# 📱 SauceLabs Mobile Test Automation Framework
+# 📱 SauceLabs Mobile Test Automation Framework
 
 > **Enterprise-grade** · **Production-ready** · Appium 2.x · Java 21 · Maven · JUnit 5 · Cucumber BDD
 
-[![CI - Smoke Tests](https://github.com/<org>/saucelabs-appium-java-bdd/actions/workflows/ci.yml/badge.svg)](https://github.com/<org>/saucelabs-appium-java-bdd/actions/workflows/ci.yml)
 [![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)](https://adoptium.net/)
 [![Appium](https://img.shields.io/badge/Appium-2.x-purple?logo=appium)](https://appium.io)
 [![Cucumber](https://img.shields.io/badge/Cucumber-7.x-green?logo=cucumber)](https://cucumber.io)
+[![JUnit 5](https://img.shields.io/badge/JUnit-5-red?logo=junit5)](https://junit.org/junit5/)
+[![UiAutomator2](https://img.shields.io/badge/Driver-UiAutomator2-blue?logo=android)](https://github.com/appium/appium-uiautomator2-driver)
 
 ---
 
-## Table of Contents
+## 📋 Table of Contents
 
-1. [Architecture Overview](#architecture-overview)
-2. [Project Structure](#project-structure)
-3. [Prerequisites](#prerequisites)
-4. [Environment Setup](#environment-setup)
-5. [Configuration](#configuration)
-6. [Running Tests](#running-tests)
-7. [Test Suites & Tag Strategy](#test-suites--tag-strategy)
-8. [Framework Design Decisions](#framework-design-decisions)
-9. [CI/CD Strategy](#cicd-strategy)
-10. [Reporting](#reporting)
-11. [Extending the Framework](#extending-the-framework)
+1. [⚡ Quick Start (5 Minutes to First Run)](#-quick-start-5-minutes-to-first-run)
+2. [Architecture Overview](#architecture-overview)
+3. [Project Structure](#project-structure)
+4. [Prerequisites](#prerequisites)
+5. [Environment Setup](#environment-setup)
+6. [Configuration](#configuration)
+7. [Running Tests](#running-tests)
+8. [Test Suites & Tag Strategy](#test-suites--tag-strategy)
+9. [Framework Design Decisions](#framework-design-decisions)
+10. [CI/CD Strategy](#cicd-strategy)
+11. [Reporting](#reporting)
+12. [Troubleshooting & Common Issues](#troubleshooting--common-issues)
+13. [Extending the Framework](#extending-the-framework)
+
+---
+
+## ⚡ Quick Start (5 Minutes to First Run)
+
+Follow these steps right after cloning the repository:
+
+### 1. Clone the repository
+```bash
+git clone <repository_url>
+cd saucelabs-appium-java-bdd
+```
+
+### 2. Verify Prerequisites
+Ensure Java 21, Maven, Node.js, and Android platform-tools are installed:
+```bash
+java -version    # Must be 21+
+mvn -version     # Must be 3.9+
+node -v          # Must be 18+ LTS
+adb version      # Android Debug Bridge
+```
+
+### 3. Start Android Emulator
+Launch your emulator via Android Studio Device Manager, or via CLI:
+```bash
+# Start emulator (example: Pixel_7)
+emulator -avd Pixel_7
+
+# Verify connected device (should display 'device' status)
+adb devices
+```
+
+### 4. Install & Start Appium Server
+```bash
+# 1. Install Appium globally (one-time setup)
+npm install -g appium
+
+# 2. Install UiAutomator2 driver (one-time setup)
+appium driver install uiautomator2
+
+# 3. Start Appium server (runs on http://127.0.0.1:4723 by default)
+appium
+```
+> Keep this terminal window open while tests are running.
+
+### 5. Execute Tests!
+In a separate terminal, run:
+
+- **macOS / Linux (Bash/Zsh):**
+  ```bash
+  mvn test
+  ```
+- **Windows (PowerShell):**
+  ```powershell
+  mvn test "-Dcucumber.tags=@smoke"
+  ```
+> 💡 *Note: The APK (`apps/SauceLabsApp.apk`) is bundled directly in the repository. No manual build or download is needed!*
 
 ---
 
@@ -37,47 +97,47 @@
                     │  Maven   │  pom.xml profiles + Surefire
                     └────┬─────┘
                          │
-              ┌──────────▼──────────┐
-              │   JUnit Platform    │  Suite engine
-              │    CukesRunner      │
-              └──────────┬──────────┘
-                         │
-           ┌─────────────▼──────────────┐
-           │      Cucumber Engine       │
-           │  Features → Step Defs      │
-           └──┬───────┬────────┬────────┘
-              │       │        │
-         ┌────▼──┐ ┌──▼───┐ ┌─▼──────┐
-         │Hooks  │ │Login │ │Products│  Step Definitions
-         │(Before│ │Steps │ │Steps   │
-         │/After)│ └──┬───┘ └─┬──────┘
-         └────┬──┘    │       │
-              │   ┌───▼───────▼───┐
-              │   │  Page Objects  │  Screen Object Model
-              │   │ (SOM Pattern)  │
-              │   │ LoginPage      │
-              │   │ ProductsPage   │
-              │   │ BasePage       │
-              │   └───────┬───────┘
-              │           │
-         ┌────▼───────────▼──────────┐
-         │      Utility Layer        │
-         │  Driver  (ThreadLocal)    │
-         │  WaitUtils (Explicit/     │
-         │            Fluent waits)  │
-         │  GestureUtils (W3C Acts)  │
-         │  ConfigurationReader      │
-         └────────────┬──────────────┘
-                      │
-              ┌───────▼────────┐
-              │ Appium 2.x     │
-              │ UiAutomator2   │
-              └───────┬────────┘
-                      │
-              ┌───────▼────────┐
-              │ Android Device │
-              │ / Emulator     │
-              └────────────────┘
+               ┌──────────▼──────────┐
+               │   JUnit Platform    │  Suite engine
+               │    CukesRunner      │
+               └──────────┬──────────┘
+                          │
+            ┌─────────────▼──────────────┐
+            │      Cucumber Engine       │
+            │  Features → Step Defs      │
+            └──┬───────┬────────┬────────┘
+               │       │        │
+          ┌────▼──┐ ┌──▼───┐ ┌─▼──────┐
+          │Hooks  │ │Login │ │Products│  Step Definitions
+          │(Before│ │Steps │ │Steps   │
+          │/After)│ └──┬───┘ └─┬──────┘
+          └────┬──┘    │       │
+               │   ┌───▼───────▼───┐
+               │   │  Page Objects  │  Screen Object Model
+               │   │ (SOM Pattern)  │
+               │   │ LoginPage      │
+               │   │ ProductsPage   │
+               │   │ BasePage       │
+               │   └───────┬───────┘
+               │           │
+          ┌────▼───────────▼──────────┐
+          │      Utility Layer        │
+          │  Driver  (ThreadLocal)    │
+          │  WaitUtils (Explicit/     │
+          │            Fluent waits)  │
+          │  GestureUtils (W3C Acts)  │
+          │  ConfigurationReader      │
+          └────────────┬──────────────┘
+                       │
+               ┌───────▼────────┐
+               │ Appium 2.x     │
+               │ UiAutomator2   │
+               └───────┬────────┘
+                       │
+               ┌───────▼────────┐
+               │ Android Device │
+               │ / Emulator     │
+               └────────────────┘
 ```
 
 ---
@@ -87,7 +147,7 @@
 ```
 saucelabs-appium-java-bdd/
 ├── apps/
-│   └── SauceLabsApp.apk                 ← Target Android application
+│   └── SauceLabsApp.apk                 ← Bundled Android target application
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                       ← GitHub Actions CI pipeline
@@ -95,6 +155,8 @@ saucelabs-appium-java-bdd/
 │   └── test/
 │       ├── java/
 │       │   └── com/saucelabs/
+│       │       ├── debug/
+│       │       │   └── PageSourceDumper.java ← Diagnostic utility for XML page dumps
 │       │       ├── pages/
 │       │       │   ├── BasePage.java    ← Abstract SOM base with guarded interactions
 │       │       │   ├── LoginPage.java   ← Login screen object (Fluent pattern)
@@ -124,306 +186,284 @@ saucelabs-appium-java-bdd/
 
 ## Prerequisites
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| **JDK** (Temurin/OpenJDK) | 21+ | Java runtime & compilation |
-| **Maven** | 3.9+ | Build & dependency management |
-| **Android Studio** | Latest | AVD Manager + SDK tools |
-| **Node.js** | 18+ LTS | Appium server runtime |
-| **Appium CLI** | 2.x | Mobile automation server |
-| **Appium UiAutomator2** | Latest | Android driver plugin |
-| **Android SDK** | API 33+ | Emulator system images |
+| Tool | Version | Purpose | Download / Guide |
+|------|---------|---------|------------------|
+| **JDK** | 21+ | Java Runtime & Compiler | [Adoptium Temurin 21](https://adoptium.net/) |
+| **Maven** | 3.9+ | Build & Dependency Management | [Maven Download](https://maven.apache.org/download.cgi) |
+| **Android Studio** | Latest | AVD Manager + Android SDK | [Android Studio](https://developer.android.com/studio) |
+| **Node.js** | 18+ LTS | Appium CLI runtime | [Node.js](https://nodejs.org/) |
+| **Appium CLI** | 2.x / 3.x | Mobile automation server | `npm install -g appium` |
+| **UiAutomator2** | Latest | Android driver | `appium driver install uiautomator2` |
+| **Android SDK** | API 33/34 | System images & platform-tools | Installed via Android Studio SDK Manager |
 
 ---
 
 ## Environment Setup
 
-### 1. Install JDK 21
-
+### 1. Install Java 21
+Verify that `JAVA_HOME` points to your JDK 21 installation:
 ```bash
-# Using SDKMAN (Linux/macOS)
-sdk install java 21.0.5-tem
-
-# Windows — download Temurin 21 from https://adoptium.net/
-# Set JAVA_HOME and add to PATH
+java -version
 ```
 
-### 2. Install Android Studio & SDK
+### 2. Configure Android SDK Environment Variables
 
-1. Download [Android Studio](https://developer.android.com/studio)
-2. Open **SDK Manager** → Install:
-   - Android SDK Platform (API 33+)
-   - Android Emulator
-   - Android SDK Platform-Tools
-3. Set environment variables:
-
+#### Windows (PowerShell)
 ```powershell
-# Windows PowerShell (add to your profile)
 [System.Environment]::SetEnvironmentVariable("ANDROID_HOME", "$env:LOCALAPPDATA\Android\Sdk", "User")
 [System.Environment]::SetEnvironmentVariable("Path", "$env:Path;$env:ANDROID_HOME\platform-tools;$env:ANDROID_HOME\emulator", "User")
 ```
 
+#### macOS / Linux (`~/.zshrc` or `~/.bashrc`)
 ```bash
-# macOS / Linux (.zshrc or .bashrc)
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator
 ```
 
-### 3. Create Android Virtual Device
-
+### 3. Verify Android ADB Connection
+Ensure your device or emulator is detected:
 ```bash
-# List available system images
-sdkmanager --list | grep "system-images"
-
-# Install image
-sdkmanager "system-images;android-33;google_apis;x86_64"
-
-# Create AVD
-avdmanager create avd \
-  --name "Pixel6_API33" \
-  --package "system-images;android-33;google_apis;x86_64" \
-  --device "pixel_6"
-
-# Start emulator
-emulator -avd Pixel6_API33 &
+adb devices
+# Output should be:
+# List of devices attached
+# emulator-5554    device
 ```
 
-### 4. Install Appium 2.x
-
+### 4. Install Appium and Drivers
 ```bash
-# Install Appium globally
-npm install -g appium@latest
+# Install Appium CLI
+npm install -g appium
 
 # Install UiAutomator2 driver
 appium driver install uiautomator2
 
-# Verify installation
-appium --version
+# Verify installed drivers
 appium driver list --installed
-
-# Run Appium Doctor (optional but recommended)
-npx appium-doctor --android
+# Output should list:
+# - uiautomator2@... [installed (npm)]
 ```
 
 ### 5. Start Appium Server
-
 ```bash
-# Start Appium (defaults to http://127.0.0.1:4723)
 appium
-
-# Or with explicit options
-appium --address 127.0.0.1 --port 4723 --log appium.log
 ```
+By default, the server listens on `http://127.0.0.1:4723`.
 
 ---
 
 ## Configuration
 
-All runtime parameters live in [`src/test/resources/configuration.properties`](src/test/resources/configuration.properties):
+All runtime configurations live in [`src/test/resources/configuration.properties`](src/test/resources/configuration.properties):
 
 ```properties
 # Platform: android | ios
 platform=android
 
-# Appium Server
+# Appium Server URL
 appium.server.url=http://127.0.0.1:4723
 
-# Android Device (match your AVD name from: adb devices)
+# Android Device Capabilities
+# (Ensure android.deviceName matches your 'adb devices' output)
 android.deviceName=emulator-5554
-android.platformVersion=13.0
-android.app=apps/SauceLabsApp.apk
+android.platformVersion=14.0
+android.apiLevel=34
+android.avdName=Pixel_7
 
-# Timeouts (seconds)
+# Application Path (relative to project root, auto-resolved)
+android.app=apps/SauceLabsApp.apk
+android.appPackage=com.saucelabs.mydemoapp.android
+android.appActivity=com.saucelabs.mydemoapp.android.view.activities.SplashActivity
+android.automationName=UiAutomator2
+android.noReset=false
+android.fullReset=false
+android.newCommandTimeout=60
+android.autoGrantPermissions=true
+android.chromedriverAutodownload=true
+
+# Wait Timeouts (seconds)
 explicit.wait.timeout=20
 fluent.wait.timeout=15
+fluent.wait.polling=500
+implicit.wait.timeout=0
 
-# Credentials
+# Test Credentials
 valid.username=bob@example.com
 valid.password=10203040
+invalid.password=wrongPass99
+unregistered.email=notfound@example.com
+locked.username=alice@example.com
+
+# Reporting
+screenshot.on.failure=true
 ```
 
-> **Override at runtime:** `mvn test -Dandroid.deviceName=<device_id>`
+> **Runtime Override:** Any configuration property can be overridden from the command line:
+> ```bash
+> mvn test "-Dandroid.deviceName=emulator-5556"
+> ```
 
 ---
 
 ## Running Tests
 
-### Start the stack first
+> ⚠️ **Important for Windows PowerShell users:**
+> In PowerShell, Maven `-D` parameters containing dots (like `-Dcucumber.tags=@smoke`) **must be enclosed in double quotes**:
+> `mvn test "-Dcucumber.tags=@smoke"`
+> If not quoted, PowerShell splits the argument and Maven throws: `[ERROR] Unknown lifecycle phase ".tags=@smoke"`.
+
+### Run by Tags
 
 ```bash
-# 1. Start your emulator (or connect a real device)
-emulator -avd Pixel6_API33 &
-adb wait-for-device
-
-# 2. Start Appium server
-appium &
-```
-
-### Execute via Maven
-
-```bash
-# ── Smoke tests only (default)
+# ── Run smoke tests (default profile)
 mvn test
 
-# ── Smoke profile (explicit)
+# ── Explicit profile runs
 mvn test -Psmoke
-
-# ── Full regression suite
 mvn test -Pregression
-
-# ── All tests (excludes @ignore)
 mvn test -Pall
 
-# ── Custom tag expression
-mvn test -Dcucumber.tags="@login and @smoke"
-mvn test -Dcucumber.tags="@products"
-mvn test -Dcucumber.tags="not @ignore"
+# ── Run by Feature
+# All Login tests (5 scenarios)
+mvn test "-Dcucumber.tags=@login"
 
-# ── Override device at runtime
-mvn test -Psmoke -Dandroid.deviceName=emulator-5556
+# All Product tests (5 scenarios)
+mvn test "-Dcucumber.tags=@products"
 
-# ── Parallel execution (2 forks)
-mvn test -Pall -Dparallel.threads=2
+# ── Run a Specific Scenario by Test Case ID
+# Scenario 1 in Login.feature
+mvn test "-Dcucumber.tags=@TC1"
+
+# Scenario 2 in Products.feature
+mvn test "-Dcucumber.tags=@TC7"
+
+# Run multiple specific test cases
+mvn test "-Dcucumber.tags=@TC7 or @TC9"
+
+# ── Combined Tag Filters
+mvn test "-Dcucumber.tags=@smoke and @login"
+mvn test "-Dcucumber.tags=@regression and not @ignore"
 ```
 
-### Re-run failed tests
+### Re-run Failed Tests
+If any tests fail during a test run, Cucumber automatically records the failed scenario lines into `target/rerun.txt`. You can immediately re-run only the failed tests:
 
 ```bash
-# First run generates target/rerun.txt
-mvn test -Pregression
-
-# Re-run only failed scenarios
-mvn test -Dtest=FailedTestRunner -Dcucumber.features="@target/rerun.txt"
+mvn test -Dtest=FailedTestRunner "-Dcucumber.features=@target/rerun.txt"
 ```
 
 ---
 
 ## Test Suites & Tag Strategy
 
-| Tag | Scope | When to Run |
-|-----|-------|-------------|
-| `@smoke` | Critical happy paths | Every commit / PR |
-| `@regression` | Full feature coverage | Nightly / pre-release |
-| `@login` | Login feature group | Login changes |
-| `@products` | Products feature group | Catalog / cart changes |
-| `@ignore` | Skipped / WIP tests | Never (filtered out) |
+| Tag | Target | Description |
+|-----|--------|-------------|
+| `@smoke` | Critical happy-path scenarios | Runs by default on `mvn test` |
+| `@regression` | Full feature validation suite | Detailed edge cases, validations, sorting |
+| `@login` | `Login.feature` | All 5 login scenarios |
+| `@products` | `Products.feature` | All 5 product catalog & cart scenarios |
+| `@TC1` | Login Scenario 1 | Successful login with valid credentials |
+| `@TC6` | Products Scenario 1 | Default catalog display (titles & prices) |
+| `@TC7` | Products Scenario 2 | Navigate to product detail page |
+| `@TC8` | Products Scenario 3 | Scroll down using W3C gesture actions |
+| `@TC9` | Products Scenario 4 | Add product to cart & verify badge counter |
+| `@TC10`| Products Scenario 5 | Apply price sorting (Low to High) |
 
 ---
 
 ## Framework Design Decisions
 
-### Thread-Safe Driver (ThreadLocal)
+### 1. Thread-Safe Driver (`Driver.java`)
+Uses `ThreadLocal<AppiumDriver>` to ensure that each parallel test thread maintains its own driver session. This isolates state and prevents cross-test race conditions.
 
-`Driver.java` stores one `AppiumDriver` per OS thread via `ThreadLocal`. This means Cucumber scenarios running in parallel each get their own isolated driver session — no shared state, no race conditions.
-
-### Screen Object Model + Fluent Pattern
-
+### 2. Screen Object Model (SOM) + Fluent Pattern
+Pages inherit from `BasePage.java` which encapsulates element wait guards. Action methods return page instances enabling fluent chaining:
 ```java
-// Step definition reads like a sentence:
-loginPage
-    .enterUsername("bob@example.com")
-    .enterPassword("10203040")
-    .tapLoginButton()
-    .isProductsHeaderDisplayed();
+productsPage = loginPage
+        .enterUsername("bob@example.com")
+        .enterPassword("10203040")
+        .tapLoginButton();
 ```
 
-Each action method returns the appropriate page object (self or next screen), enabling method chaining without breaking type safety.
+### 3. W3C Gesture Actions (`GestureUtils.java`)
+Mobile interactions (scrolls, swipes, drags) strictly implement the modern **W3C Actions API** (`PointerInput` and `Sequence`). Legacy, deprecated `TouchAction` APIs are avoided.
 
-### Wait Strategy
-
-- **Implicit waits are disabled** (`implicit.wait.timeout=0`) to avoid masking timing issues.
-- All element interactions go through `WaitUtils.waitForClickability()` or `WaitUtils.waitForVisibility()`.
-- `FluentWait` with configurable polling is used for asynchronous UI updates.
-
-### W3C Gesture Actions
-
-`GestureUtils.java` uses the `PointerInput` / `Sequence` API exclusively — the W3C standard required by Appium 2.x. Legacy `TouchAction` is not used.
-
-```java
-// Scroll to a product
-GestureUtils.scrollDownToElement(element, maxSwipes);
-
-// Horizontal swipe
-GestureUtils.swipeLeft(0.7);
-
-// Drag and drop
-GestureUtils.dragAndDrop(source, target);
-```
-
-### Locator Strategy Hierarchy
-
-| Priority | Strategy | When to Use |
-|----------|----------|-------------|
-| 1 | `accessibilityId` | Always prefer — stable, test-ID driven |
-| 2 | `androidUIAutomator` | Complex queries (text, resourceId patterns) |
-| 3 | `id` (resourceId) | When accessibility IDs are absent |
-| 4 | `xpath` | Last resort only |
+### 4. Smart Synchronization (`WaitUtils.java`)
+- **Zero Implicit Waits**: Prevents polling delays and conflicting timeout behaviors.
+- **Explicit & Fluent Waits**: Used before every click and text retrieval with configurable polling intervals.
 
 ---
 
 ## CI/CD Strategy
 
-The [GitHub Actions workflow](.github/workflows/ci.yml) runs on every push to `main`/`develop` and every pull request:
-
-```
-push / PR
-    │
-    ▼
-┌─────────────────────────────────────────┐
-│  GitHub Actions — ubuntu-latest         │
-│                                         │
-│  1. Checkout + Java 21 + Maven cache    │
-│  2. Android SDK + KVM acceleration      │
-│  3. Create + Start AVD (API 33)         │
-│  4. Node.js + Appium 2.x install        │
-│  5. Start Appium server                 │
-│  6. Wait for emulator boot              │
-│  7. mvn test -Psmoke                    │
-│  8. Upload HTML report artifact (14d)   │
-│  9. Upload Appium + framework logs (7d) │
-└─────────────────────────────────────────┘
-```
-
-**Manual trigger** via `workflow_dispatch` supports custom tag expressions.
+The repository includes a production-ready GitHub Actions workflow in [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+- Configures Java 21, Android SDK, and KVM hardware acceleration.
+- Starts an Android emulator (API 33) and Appium server.
+- Executes `mvn test -Psmoke`.
+- Uploads HTML reports and screenshots as build artifacts.
 
 ---
 
 ## Reporting
 
-After a test run, reports are generated in `target/cucumber-reports/`:
+After test execution, reports are generated automatically under `target/cucumber-reports/`:
 
-| File | Format | Description |
-|------|--------|-------------|
-| `cucumber-report.html` | HTML | Human-readable visual report |
-| `cucumber-report.json` | JSON | Machine-readable; Allure/Jenkins compatible |
-| `cucumber-report.xml` | JUnit XML | CI dashboard integration |
-| `rerun.txt` | Text | List of failed scenario URIs for re-run |
+| Report File | Format | Description |
+|-------------|--------|-------------|
+| `cucumber-report.html` | HTML | Visual interactive report with embedded failure screenshots |
+| `cucumber-report.json` | JSON | Machine-readable report for CI tools (Allure/Jenkins) |
+| `rerun.txt` | Text | List of failed scenario line numbers for easy retry |
 
-**Open HTML report:**
-```bash
-start target/cucumber-reports/cucumber-report.html   # Windows
-open  target/cucumber-reports/cucumber-report.html   # macOS
-```
+### View Reports
+- **Windows:**
+  ```powershell
+  Invoke-Item target/cucumber-reports/cucumber-report.html
+  ```
+- **macOS / Linux:**
+  ```bash
+  open target/cucumber-reports/cucumber-report.html
+  ```
 
-**Screenshot on failure** — automatically captured and embedded in the HTML report body (no external file references).
+---
+
+## Troubleshooting & Common Issues
+
+### 1. Maven Error: `Unknown lifecycle phase ".tags=@..."`
+- **Cause:** Windows PowerShell parses `-Dcucumber.tags=@smoke` as a sub-command.
+- **Solution:** Enclose property arguments in quotes:
+  ```powershell
+  mvn test "-Dcucumber.tags=@smoke"
+  ```
+
+### 2. Appium Error: `Connection refused: http://127.0.0.1:4723`
+- **Cause:** Appium server is not running.
+- **Solution:** Open a new terminal and run `appium`. Wait until you see:
+  `[Appium] Appium REST http interface listener started on http://0.0.0.0:4723`
+
+### 3. `Could not find a connected Android device`
+- **Cause:** Emulator is not booted or `adb` connection is offline.
+- **Solution:**
+  1. Run `adb devices`.
+  2. If the emulator is `offline`, restart it.
+  3. Reset the adb daemon: `adb kill-server && adb start-server`.
+  4. Ensure `android.deviceName` in `configuration.properties` matches the device serial from `adb devices`.
+
+### 4. `EPERM: operation not permitted` or Sandbox Permission on Windows
+- **Cause:** Command running in a restricted sandbox or shell without proper user permissions to `~/.android`.
+- **Solution:** Ensure your command prompt or terminal has standard user privileges and access to `C:\Users\<username>\.android`.
 
 ---
 
 ## Extending the Framework
 
-### Add a New Screen
+### Adding a New Screen
+1. Create `src/test/java/com/saucelabs/pages/CartPage.java` extending `BasePage`.
+2. Define `@AndroidFindBy` elements using `accessibilityId`, `id`, or `xpath`.
+3. Implement fluent user interaction methods.
 
-1. Create `src/test/java/com/saucelabs/pages/CheckoutPage.java` extending `BasePage`.
-2. Add `@AndroidFindBy` locators.
-3. Implement fluent action methods returning `CheckoutPage` (or next page).
-
-### Add iOS Support
-
-In `configuration.properties`, set `platform=ios` and configure `ios.*` properties. `Driver.java` will automatically create an `IOSDriver` with `XCUITestOptions`.
-
-### Add Cloud (SauceLabs/BrowserStack)
-
-Override `appium.server.url` with the cloud endpoint and add cloud-specific capabilities via a new `createCloudDriver()` branch in `Driver.java`.
+### Adding New Feature Scenarios
+1. Create or edit a `.feature` file in `src/test/resources/features/`.
+2. Annotate scenarios with appropriate tags (e.g. `@smoke`, `@regression`, `@TC...`).
+3. Implement step definitions in `com.saucelabs.step_definitions`.
 
 ---
 
