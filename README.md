@@ -49,6 +49,7 @@ adb version      # Android Debug Bridge
 
 ### 3. Start Android Emulator
 Launch your emulator via Android Studio Device Manager, or via CLI:
+*(İlk kez kuruyorsanız veya emülatörünüz hazır değilse adım adım görsel rehber için [Android Studio & Emulator Kurulum Kılavuzu](#2-android-studio--emulator-avd-setup-guide) bölümüne bakın)*
 ```bash
 # Start emulator (example: Pixel_7)
 emulator -avd Pixel_7
@@ -206,48 +207,135 @@ Verify that `JAVA_HOME` points to your JDK 21 installation:
 java -version
 ```
 
-### 2. Configure Android SDK Environment Variables
+---
 
-#### Windows (PowerShell)
+### 2. Android Studio & Emulator (AVD) Setup Guide
+
+Repoyu yeni klonlayan bir kullanıcının testleri çalıştırabilmesi için Android SDK ve bir Android Emülatörüne (veya fiziksel cihaza) ihtiyacı vardır. Aşağıdaki adımları takip ederek 3-5 dakika içinde emülatörü hazır hale getirebilirsiniz.
+
+#### Yöntem A: Android Studio Arayüzü (GUI) ile Kurulum (Önerilen)
+
+1. **Android Studio'yu İndirin ve Kurun:**
+   - [developer.android.com/studio](https://developer.android.com/studio) adresinden resmi kurulum dosyasını indirin ve standart ayarlarla kurun.
+
+2. **Gerekli SDK Bileşenlerini Yükleyin:**
+   - Android Studio'yu açın: **More Actions** (veya üst menüden **Tools**) → **SDK Manager** sekmesine gidin.
+   - **SDK Platforms** sekmesinde:
+     - ☑️ `Android 14.0 ("UpsideDownCake") - API Level 34` seçin.
+   - **SDK Tools** sekmesinde şu bileşenlerin işaretli olduğundan emin olun:
+     - ☑️ `Android SDK Build-Tools`
+     - ☑️ `Android SDK Command-line Tools (latest)`
+     - ☑️ `Android Emulator`
+     - ☑️ `Android SDK Platform-Tools`
+   - **Apply** → **OK** diyerek indirmeyi tamamlayın.
+
+3. **Sanal Cihazı (AVD) Oluşturun:**
+   - Android Studio'da **Device Manager** sekmesini açın (**Tools** → **Device Manager**).
+   - **Create Virtual Device** (veya **+** butonu) butonuna tıklayın.
+   - **Select Hardware:** Telefon kategorisinden **Pixel 7** seçin ve **Next**'e tıklayın.
+   - **System Image:**
+     - **API Level 34** (`UpsideDownCake`, ABI: `x86_64`, Target: `Google APIs`) seçin. (Yanında indirme simgesi varsa tıklayıp indirin).
+     - **Next**'e tıklayın.
+   - **Verify Configuration (Önemli!):**
+     - **AVD Name** alanına tam olarak `Pixel_7` yazın. (Projedeki `configuration.properties` dosyasında varsayılan olarak `android.avdName=Pixel_7` tanımlıdır).
+     - **Graphics:** `Automatic` veya `Hardware - GLES 2.0` olarak bırakın.
+   - **Finish** butonuna tıklayarak kurulumu tamamlayın.
+
+4. **Emülatörü Başlatın ve Doğrulayın:**
+   - Device Manager listesinde `Pixel_7` cihazının yanındaki **Play (▶)** simgesine tıklayın.
+   - Emülatör ekranı açılıp ana ekran yüklendikten sonra terminalinizde şu komutu çalıştırın:
+     ```bash
+     adb devices
+     ```
+   - Çıktıda cihazın hazır olduğunu görmelisiniz:
+     ```text
+     List of devices attached
+     emulator-5554    device
+     ```
+
+---
+
+#### Yöntem B: Terminal / Komut Satırı (CLI) ile Kurulum (Gelişmiş)
+
+Android Studio arayüzünü açmadan doğrudan terminal üzerinden emülatör kurmak isterseniz:
+
+```bash
+# 1. SDK bileşenlerini ve API 34 imajını indirin
+sdkmanager "platform-tools" "platforms;android-34" "system-images;android-34;google_apis;x86_64"
+
+# 2. Pixel_7 adında emülatör oluşturun
+avdmanager create avd -n "Pixel_7" -k "system-images;android-34;google_apis;x86_64" --device "pixel_7"
+
+# 3. Emülatörü başlatın
+emulator -avd Pixel_7
+```
+
+---
+
+#### Yöntem C: Fiziksel Gerçek Android Cihaz Kullanımı (Alternatif)
+
+Emülatör yerine kendi Android telefonunuzda test koşturmak isterseniz:
+1. Telefonunuzda: **Ayarlar** → **Telefon Hakkında** → **Derleme Numarası (Build Number)** üzerine 7 kez dokunarak **Geliştirici Seçenekleri**ni açın.
+2. **Geliştirici Seçenekleri** menüsünden **USB Hata Ayıklama (USB Debugging)** özelliğini aktif edin.
+3. Telefonu USB kablosuyla bilgisayara bağlayın (Telefonda çıkan "Bu bilgisayara güvenilsin mi?" uyarısına *Her zaman izin ver* deyin).
+4. Terminalde `adb devices` komutunu çalıştırın ve seri numarasını kopyalayın (örn: `RF8M1234567`).
+5. `src/test/resources/configuration.properties` dosyasında `android.deviceName` alanına bu seri numarasını yazın (veya komutta `-Dandroid.deviceName=RF8M1234567` ile geçin).
+
+---
+
+### 3. Android SDK Ortam Değişkenlerini (Environment Variables) Ayarlayın
+
+`adb` ve `emulator` komutlarının herhangi bir terminal penceresinden çağrılabilmesi ve Appium'un Android SDK'yı otomatik olarak bulabilmesi için ortam değişkenlerinin tanımlı olması gerekir:
+
+#### Windows
+1. Başlat menüsüne **"Ortam Değişkenleri"** (Environment Variables) yazıp açın.
+2. **Kullanıcı Değişkenleri** altında **Yeni** butonuna tıklayın:
+   - **Değişken Adı:** `ANDROID_HOME`
+   - **Değişken Değeri:** `C:\Users\<KullaniciAdiniz>\AppData\Local\Android\Sdk`
+3. Yine Kullanıcı Değişkenleri listesindeki **Path** değişkenini seçip **Düzenle**'ye tıklayın ve şu satırları ekleyin:
+   - `%ANDROID_HOME%\platform-tools`
+   - `%ANDROID_HOME%\emulator`
+   - `%ANDROID_HOME%\cmdline-tools\latest\bin`
+
+*PowerShell ile tek komutla ayarlamak için:*
 ```powershell
 [System.Environment]::SetEnvironmentVariable("ANDROID_HOME", "$env:LOCALAPPDATA\Android\Sdk", "User")
 [System.Environment]::SetEnvironmentVariable("Path", "$env:Path;$env:ANDROID_HOME\platform-tools;$env:ANDROID_HOME\emulator", "User")
 ```
 
-#### macOS / Linux (`~/.zshrc` or `~/.bashrc`)
+#### macOS / Linux (`~/.zshrc` veya `~/.bashrc`)
 ```bash
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator
 ```
 
-### 3. Verify Android ADB Connection
-Ensure your device or emulator is detected:
+Yeni açacağınız bir terminalde doğrulamak için:
 ```bash
-adb devices
-# Output should be:
-# List of devices attached
-# emulator-5554    device
+adb version
 ```
 
-### 4. Install Appium and Drivers
+---
+
+### 4. Appium ve Sürücü Kurulumu
 ```bash
-# Install Appium CLI
+# 1. Appium CLI kurun
 npm install -g appium
 
-# Install UiAutomator2 driver
+# 2. UiAutomator2 Android sürücüsünü kurun
 appium driver install uiautomator2
 
-# Verify installed drivers
+# 3. Kurulumu doğrulayın
 appium driver list --installed
-# Output should list:
-# - uiautomator2@... [installed (npm)]
+# Çıktıda uiautomator2 görünmelidir.
 ```
 
-### 5. Start Appium Server
+---
+
+### 5. Appium Sunucusunu Başlatın
 ```bash
 appium
 ```
-By default, the server listens on `http://127.0.0.1:4723`.
+Sunucu varsayılan olarak `http://127.0.0.1:4723` portunda çalışacaktır. Testler çalışırken bu terminali açık bırakın.
 
 ---
 
