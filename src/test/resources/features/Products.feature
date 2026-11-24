@@ -33,9 +33,9 @@ Feature: Product Catalog Screen Functionality
     Then  the product "Sauce Labs Onesie" should be visible
 
   # ─────────────────────────────────────────────────────────────
-  # 4. Add to cart @TC9
+  # 4. Add to cart
   # ─────────────────────────────────────────────────────────────
-  @regression @products
+  @regression @products @TC9
   Scenario: Add a product to the shopping cart and verify cart badge updates
     When  the user adds the first product to the cart
     Then  the cart badge should display "1"

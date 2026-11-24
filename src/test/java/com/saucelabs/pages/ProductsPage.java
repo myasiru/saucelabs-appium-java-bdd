@@ -30,6 +30,10 @@ public class ProductsPage extends BasePage {
     @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/titleTV' or @content-desc='test-Item title']")
     private List<WebElement> productTitles;
 
+    /** All product image elements in the catalog list. */
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/productIV' or @content-desc='Product Image']")
+    private List<WebElement> productImages;
+
     /** All product price text elements in the catalog list. */
     @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/priceTV' or @content-desc='test-Price']")
     private List<WebElement> productPrices;
@@ -43,12 +47,12 @@ public class ProductsPage extends BasePage {
     private WebElement cartIcon;
 
     /** Cart badge counter element. */
-    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/cartBadge']")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/cartTV' or @resource-id='com.saucelabs.mydemoapp.android:id/cartBadge']")
     private WebElement cartBadge;
 
     // ─── Detail Page ─────────────────────────────────────────────────────────
 
-    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/productDescriptionTV' or @content-desc='test-Description']")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/descTV' or @resource-id='com.saucelabs.mydemoapp.android:id/productDescriptionTV' or @content-desc='test-Description']")
     private WebElement productDescription;
 
     @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/priceTV' or @content-desc='test-Price']")
@@ -133,11 +137,16 @@ public class ProductsPage extends BasePage {
      * @return this ProductsPage (re-initialised after navigation)
      */
     public ProductsPage tapFirstProduct() {
-        WaitUtils.waitForVisibilityOfAll(productTitles);
-        LOG.info("Tapping first product: '{}'", productTitles.get(0).getText());
-        click(productTitles.get(0));
-        // Wait for detail page to load
-        WaitUtils.waitForVisibility(productDescription);
+        if (productImages != null && !productImages.isEmpty()) {
+            LOG.info("Tapping first product image.");
+            click(productImages.get(0));
+        } else {
+            WaitUtils.waitForVisibilityOfAll(productTitles);
+            LOG.info("Tapping first product: '{}'", productTitles.get(0).getText());
+            click(productTitles.get(0));
+        }
+        // Wait for detail page to load (price is immediately visible)
+        WaitUtils.waitForVisibility(productDetailPrice);
         return new ProductsPage();
     }
 
@@ -145,6 +154,14 @@ public class ProductsPage extends BasePage {
      * Returns the product description text on the detail page.
      */
     public String getProductDescription() {
+        try {
+            if (!isDisplayed(productDescription)) {
+                GestureUtils.scrollDown(0.35);
+            }
+        } catch (Exception e) {
+            GestureUtils.scrollDown(0.35);
+        }
+        WaitUtils.waitForVisibility(productDescription);
         return getText(productDescription);
     }
 
@@ -218,8 +235,7 @@ public class ProductsPage extends BasePage {
     public ProductsPage addFirstProductToCart() {
         LOG.info("Adding first product to cart via detail page.");
         // 1. Open detail page
-        WaitUtils.waitForVisibilityOfAll(productTitles);
-        click(productTitles.get(0));
+        tapFirstProduct();
         // 2. Wait for detail page and tap Add to Cart
         WaitUtils.waitForVisibility(addToCartDetailButton);
         click(addToCartDetailButton);

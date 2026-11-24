@@ -52,18 +52,23 @@ public class PageSourceDumper {
         Files.writeString(Path.of(basePath + "catalog_page_source.xml"), catalogSource);
         System.out.println(">>> CATALOG PAGE SOURCE SAVED <<<");
 
-        // 2) Tap on first product title
-        List<WebElement> titles = driver.findElements(By.xpath("//*[@resource-id='com.saucelabs.mydemoapp.android:id/titleTV']"));
-        System.out.println(">>> Found " + titles.size() + " product titles <<<");
+        // 2) Tap on first product image or title
+        List<WebElement> images = driver.findElements(By.xpath("//*[@resource-id='com.saucelabs.mydemoapp.android:id/productIV']"));
+        System.out.println(">>> Found " + images.size() + " product images <<<");
 
-        if (!titles.isEmpty()) {
-            titles.get(0).click();
-            Thread.sleep(3000);
+        if (!images.isEmpty()) {
+            images.get(0).click();
+            Thread.sleep(2000);
 
-            // 3) Dump product detail page
-            String detailSource = driver.getPageSource();
-            Files.writeString(Path.of(basePath + "detail_page_source.xml"), detailSource);
-            System.out.println(">>> DETAIL PAGE SOURCE SAVED <<<");
+            // Tap Add to cart
+            WebElement addBtn = driver.findElement(By.id("com.saucelabs.mydemoapp.android:id/cartBt"));
+            addBtn.click();
+            Thread.sleep(2000);
+
+            // Dump page source after adding to cart
+            String cartSource = driver.getPageSource();
+            Files.writeString(Path.of(basePath + "cart_added_page_source.xml"), cartSource);
+            System.out.println(">>> CART ADDED PAGE SOURCE SAVED <<<");
         }
     }
 }
