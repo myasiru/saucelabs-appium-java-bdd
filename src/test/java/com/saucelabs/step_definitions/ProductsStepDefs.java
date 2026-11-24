@@ -135,11 +135,11 @@ public class ProductsStepDefs {
         LOG.info("Step: sorting products by '{}'.", sortOption);
         productsPage = productsPage.openSortModal();
         switch (sortOption.toLowerCase()) {
-            case "price: low to high", "price (low to high)" ->
+            case "price: low to high", "price (low to high)", "price - ascending" ->
                     productsPage = productsPage.selectSortPriceLowToHigh();
-            case "price: high to low", "price (high to low)" ->
+            case "price: high to low", "price (high to low)", "price - descending" ->
                     productsPage = productsPage.selectSortPriceHighToLow();
-            case "name (a to z)", "a to z" ->
+            case "name (a to z)", "a to z", "name - ascending" ->
                     productsPage = productsPage.selectSortNameAToZ();
             default -> throw new IllegalArgumentException("Unknown sort option: " + sortOption);
         }

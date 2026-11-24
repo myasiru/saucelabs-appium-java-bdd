@@ -2,7 +2,6 @@ package com.saucelabs.pages;
 
 import com.saucelabs.utilities.GestureUtils;
 import com.saucelabs.utilities.WaitUtils;
-import io.appium.java_client.pagefactory.AndroidFindAll;
 import io.appium.java_client.pagefactory.AndroidFindBy;
 import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
@@ -36,44 +35,40 @@ public class ProductsPage extends BasePage {
     private List<WebElement> productPrices;
 
     /** The sort / filter button (funnel icon) in the top-right. */
-    @AndroidFindBy(accessibility = "test-Modal Selector Button")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/sortIV' or @content-desc='test-Modal Selector Button']")
     private WebElement sortButton;
 
     /** The shopping cart icon with badge. */
-    @AndroidFindBy(accessibility = "test-Cart")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/cartIV' or @resource-id='com.saucelabs.mydemoapp.android:id/cartRL' or @content-desc='test-Cart']")
     private WebElement cartIcon;
 
     /** Cart badge counter element. */
-    @AndroidFindBy(uiAutomator = "new UiSelector().resourceIdMatches(\".*cartBadge\")")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/cartBadge']")
     private WebElement cartBadge;
-
-    /** "Add to cart" buttons (one per product card). */
-    @AndroidFindBy(accessibility = "test-ADD TO CART")
-    private List<WebElement> addToCartButtons;
 
     // ─── Detail Page ─────────────────────────────────────────────────────────
 
-    @AndroidFindBy(accessibility = "test-Description")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/productDescriptionTV' or @content-desc='test-Description']")
     private WebElement productDescription;
 
-    @AndroidFindBy(accessibility = "test-Price")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/priceTV' or @content-desc='test-Price']")
     private WebElement productDetailPrice;
 
-    @AndroidFindBy(accessibility = "test-ADD TO CART")
+    @AndroidFindBy(xpath = "//*[@resource-id='com.saucelabs.mydemoapp.android:id/cartBt' or @content-desc='Tap to add product to cart' or @content-desc='test-ADD TO CART']")
     private WebElement addToCartDetailButton;
 
-    @AndroidFindBy(accessibility = "test-BACK TO PRODUCTS")
+    @AndroidFindBy(xpath = "//*[@content-desc='Displays the catalog page' or @content-desc='test-BACK TO PRODUCTS']")
     private WebElement backToProductsButton;
 
     // ─── Sort Modal ───────────────────────────────────────────────────────────
 
-    @AndroidFindBy(uiAutomator = "new UiSelector().text(\"Price (low to high)\")")
+    @AndroidFindBy(xpath = "//*[@text='Price - Ascending' or @text='Price (low to high)']")
     private WebElement sortPriceLowToHigh;
 
-    @AndroidFindBy(uiAutomator = "new UiSelector().text(\"Price (high to low)\")")
+    @AndroidFindBy(xpath = "//*[@text='Price - Descending' or @text='Price (high to low)']")
     private WebElement sortPriceHighToLow;
 
-    @AndroidFindBy(uiAutomator = "new UiSelector().text(\"Name (A to Z)\")")
+    @AndroidFindBy(xpath = "//*[@text='Name - Ascending' or @text='Name (A to Z)']")
     private WebElement sortNameAToZ;
 
     // =========================================================================
@@ -138,8 +133,11 @@ public class ProductsPage extends BasePage {
      * @return this ProductsPage (re-initialised after navigation)
      */
     public ProductsPage tapFirstProduct() {
+        WaitUtils.waitForVisibilityOfAll(productTitles);
         LOG.info("Tapping first product: '{}'", productTitles.get(0).getText());
         click(productTitles.get(0));
+        // Wait for detail page to load
+        WaitUtils.waitForVisibility(productDescription);
         return new ProductsPage();
     }
 
@@ -212,14 +210,20 @@ public class ProductsPage extends BasePage {
     // =========================================================================
 
     /**
-     * Taps "Add to Cart" for the first product in the catalog.
+     * Taps the first product in the catalog to open detail, then taps
+     * the "Add to cart" button on the detail page.
      *
-     * @return this ProductsPage (fluent)
+     * @return a fresh ProductsPage after navigating back to the catalog
      */
     public ProductsPage addFirstProductToCart() {
-        LOG.info("Adding first product to cart.");
-        click(addToCartButtons.get(0));
-        return this;
+        LOG.info("Adding first product to cart via detail page.");
+        // 1. Open detail page
+        WaitUtils.waitForVisibilityOfAll(productTitles);
+        click(productTitles.get(0));
+        // 2. Wait for detail page and tap Add to Cart
+        WaitUtils.waitForVisibility(addToCartDetailButton);
+        click(addToCartDetailButton);
+        return new ProductsPage();
     }
 
     /**

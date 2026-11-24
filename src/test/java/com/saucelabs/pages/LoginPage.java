@@ -1,6 +1,6 @@
 package com.saucelabs.pages;
 
-import io.appium.java_client.pagefactory.AndroidFindAll;
+import com.saucelabs.utilities.WaitUtils;
 import io.appium.java_client.pagefactory.AndroidFindBy;
 import org.openqa.selenium.WebElement;
 import org.slf4j.Logger;
@@ -72,6 +72,7 @@ public class LoginPage extends BasePage {
         try {
             click(menuButton);
             click(loginMenuItem);
+            WaitUtils.waitForVisibility(usernameField);
             LOG.info("Successfully navigated to Login screen.");
         } catch (Exception e) {
             LOG.warn("Could not navigate to Login screen via menu: {}", e.getMessage());

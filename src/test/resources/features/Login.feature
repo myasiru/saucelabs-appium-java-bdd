@@ -19,7 +19,7 @@ Feature: Login Screen Functionality
   # ─────────────────────────────────────────────────────────────
   # 2. Locked out user account validation
   # ─────────────────────────────────────────────────────────────
-  @regression @login
+  @regression @login @TC2
   Scenario: Unsuccessful login with a locked out user account
     When  the user enters a locked out username
     And   the user taps the LOGIN button expecting failure
@@ -28,7 +28,7 @@ Feature: Login Screen Functionality
   # ─────────────────────────────────────────────────────────────
   # 3. Explicit locked out credentials validation
   # ─────────────────────────────────────────────────────────────
-  @regression @login
+  @regression @login @TC3
   Scenario: Unsuccessful login with explicit locked out user credentials
     When  the user enters username "alice@example.com" and password "10203040"
     And   the user taps the LOGIN button expecting failure
@@ -37,7 +37,7 @@ Feature: Login Screen Functionality
   # ─────────────────────────────────────────────────────────────
   # 4. Empty username field validation
   # ─────────────────────────────────────────────────────────────
-  @regression @login
+  @regression @login @TC4
   Scenario: Login attempt shows validation error when username is empty
     When  the user taps LOGIN with empty username
     Then  a username validation error should be shown
@@ -45,7 +45,7 @@ Feature: Login Screen Functionality
   # ─────────────────────────────────────────────────────────────
   # 5. Empty password field validation
   # ─────────────────────────────────────────────────────────────
-  @regression @login
+  @regression @login @TC5
   Scenario: Login attempt shows validation error when password is empty
     When  the user taps LOGIN with empty password
     Then  a password validation error should be shown

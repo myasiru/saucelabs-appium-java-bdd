@@ -10,7 +10,7 @@ Feature: Product Catalog Screen Functionality
   # ─────────────────────────────────────────────────────────────
   # 1. Default catalog display
   # ─────────────────────────────────────────────────────────────
-  @smoke @products
+  @smoke @products @TC6
   Scenario: Verify default product catalog items display titles and prices
     Then  at least 3 product titles should be displayed
     And   each product should show a price
@@ -18,7 +18,7 @@ Feature: Product Catalog Screen Functionality
   # ─────────────────────────────────────────────────────────────
   # 2. Product detail page
   # ─────────────────────────────────────────────────────────────
-  @regression @products
+  @regression @products @TC7
   Scenario: Navigate to a product detail page and verify item details
     When  the user taps on the first product
     Then  the product detail page should display a description
@@ -27,13 +27,13 @@ Feature: Product Catalog Screen Functionality
   # ─────────────────────────────────────────────────────────────
   # 3. Scroll to non-visible item (W3C Gestures)
   # ─────────────────────────────────────────────────────────────
-  @regression @products
+  @regression @products @TC8
   Scenario: Scroll down to locate a non-visible product using W3C gesture actions
     When  the user scrolls down to find "Sauce Labs Onesie"
     Then  the product "Sauce Labs Onesie" should be visible
 
   # ─────────────────────────────────────────────────────────────
-  # 4. Add to cart
+  # 4. Add to cart @TC9
   # ─────────────────────────────────────────────────────────────
   @regression @products
   Scenario: Add a product to the shopping cart and verify cart badge updates
@@ -43,7 +43,7 @@ Feature: Product Catalog Screen Functionality
   # ─────────────────────────────────────────────────────────────
   # 5. Sort by price
   # ─────────────────────────────────────────────────────────────
-  @regression @products
+  @regression @products @TC10
   Scenario: Apply Price Low to High sorting filter and verify product order
     When  the user sorts products by "Price: Low to High"
     Then  the products should be ordered from lowest to highest price

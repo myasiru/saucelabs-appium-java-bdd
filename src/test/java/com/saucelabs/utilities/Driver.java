@@ -107,6 +107,7 @@ public final class Driver {
                 .setApp(appPath)
                 .setAppPackage(ConfigurationReader.get("android.appPackage"))
                 .setAppActivity(ConfigurationReader.get("android.appActivity"))
+                .setAppWaitActivity(ConfigurationReader.getOrDefault("android.appWaitActivity", "*"))
                 .setAutomationName(ConfigurationReader.get("android.automationName"))
                 .setNoReset(Boolean.parseBoolean(ConfigurationReader.getOrDefault("android.noReset", "false")))
                 .setFullReset(Boolean.parseBoolean(ConfigurationReader.getOrDefault("android.fullReset", "false")))
